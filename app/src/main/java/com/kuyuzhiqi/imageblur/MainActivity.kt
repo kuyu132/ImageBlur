@@ -1,56 +1,51 @@
 package com.kuyuzhiqi.imageblur
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.os.AsyncTask
-import android.support.v7.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
+import android.view.View
+import com.chad.library.adapter.base.BaseQuickAdapter
+import com.chad.library.adapter.base.BaseViewHolder
+import com.chad.library.adapter.base.listener.OnItemClickListener
+import com.kuyuzhiqi.imageblur.ui.BinaryzationActivity
+import com.kuyuzhiqi.imageblur.ui.GassBlurActivity
+import com.kuyuzhiqi.imageblur.ui.GrayImageActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var bitmap: Bitmap
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        // Example of a call to a native method
-        sample_text.text = stringFromJNI() + stringFromJNI2()
-        bitmap = BitmapFactory.decodeResource(resources, R.mipmap.bg)
-        Log.i("tag", "START:" + System.currentTimeMillis().toString())
-        ImageBulrAyncTask().execute()
+        var list = ArrayList<String>().apply {
+            add("高斯模糊")
+            add("灰度图像")
+            add("二值化")
+        }
+        rv_list.adapter = ItemAdapter(list)
+        rv_list.layoutManager = LinearLayoutManager(this)
+        rv_list.addOnItemTouchListener(object : OnItemClickListener() {
+            override fun onSimpleItemClick(adapter: BaseQuickAdapter<*, *>?, view: View?, position: Int) {
+                when (position) {
+                    0 -> {
+                        startActivity(Intent(this@MainActivity, GassBlurActivity::class.java))
+                    }
+                    1 -> {
+                        startActivity(Intent(this@MainActivity, GrayImageActivity::class.java))
+                    }
+                    2 -> {
+                        startActivity(Intent(this@MainActivity, BinaryzationActivity::class.java))
+                    }
+                }
+            }
+        })
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    external fun stringFromJNI(): String
 
-    external fun stringFromJNI2(): String
-
-    external fun gaussBlur(bitmap: Bitmap)
-
-    companion object {
-
-        // Used to load the 'native-lib' library on application startup.
-        init {
-            System.loadLibrary("native-lib")
-            System.loadLibrary("native-lib2")
-        }
-    }
-
-    inner class ImageBulrAyncTask : AsyncTask<Void, Void, String>() {
-        override fun doInBackground(vararg params: Void?): String {
-            gaussBlur(bitmap)
-            return ""
-        }
-
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
-            iv2.setImageBitmap(bitmap)
-            Log.i("tag", "END:" + System.currentTimeMillis().toString())
+    class ItemAdapter(list: List<String>) : BaseQuickAdapter<String, BaseViewHolder>(R.layout.item_main, list) {
+        override fun convert(holder: BaseViewHolder, item: String) {
+            holder.setText(R.id.tv_name, item)
         }
     }
 }

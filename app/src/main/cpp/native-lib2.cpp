@@ -5,7 +5,7 @@
 #include <android/bitmap.h>
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_kuyuzhiqi_imageblur_MainActivity_stringFromJNI2(
+Java_com_kuyuzhiqi_imageblur_LibraryLoadUtil_stringFromJNI2(
         JNIEnv *env,
         jobject /* this */) {
     std::string hello = "Hello from C++ test";
@@ -85,12 +85,44 @@ void gaussBlur1(int *pix, int w, int h, int radius) {
     free(listData);
 }
 
-extern "C" JNIEXPORT void JNICALL
-Java_com_kuyuzhiqi_imageblur_MainActivity_gaussBlur(JNIEnv *env, jobject thiz, jobject bitmap) {
+//高斯模糊
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_kuyuzhiqi_imageblur_LibraryLoadUtil_gaussBlur(JNIEnv *env, jobject instance, jobject bitmap) {
     AndroidBitmapInfo info = {0};
     int *data = NULL;
     AndroidBitmap_getInfo(env, bitmap, &info);
     AndroidBitmap_lockPixels(env, bitmap, (void **) &data);
-    gaussBlur1(data, info.width, info.height, 10);
+    gaussBlur1(data, info.width, info.height, 20);
     AndroidBitmap_unlockPixels(env, bitmap);
+}
+
+//灰度图
+extern "C"
+JNIEXPORT jintArray JNICALL
+Java_com_kuyuzhiqi_imageblur_LibraryLoadUtil_imgToGray(JNIEnv *env, jobject instance, jintArray buf, jint w, jint h) {
+    jint *cbuf;
+    //传false会报cannot initialize a parameter of type 'jboolean *' (aka 'unsigned char *')
+    cbuf = env->GetIntArrayElements(buf, JNI_FALSE);
+    if (cbuf == NULL) {
+        return 0;
+    }
+    int alpha = 0xFF << 24;
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            //获取像素颜色
+            int color = cbuf[w * i + j];
+            int red = ((color & 0x00FF0000) >> 16);
+            int green = ((color & 0x0000FF00) >> 8);
+            int blue = color & 0x000000FF;
+            color = (red + green + blue) / 3;
+            color = alpha | (color << 16) | (color << 8) | color;
+            cbuf[w * i + j] = color;
+        }
+    }
+    int size = w * h;
+    jintArray result = env->NewIntArray(size);
+    env->SetIntArrayRegion(result, 0, size, cbuf);
+    env->ReleaseIntArrayElements(buf, cbuf, 0);
+    return result;
 }

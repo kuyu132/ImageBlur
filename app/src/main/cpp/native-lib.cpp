@@ -2,7 +2,7 @@
 #include <string>
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_kuyuzhiqi_imageblur_MainActivity_stringFromJNI(
+Java_com_kuyuzhiqi_imageblur_LibraryLoadUtil_stringFromJNI(
         JNIEnv *env,
         jobject /* this */) {
     std::string hello = "Hello from C++";
