@@ -1,4 +1,4 @@
-# ImageBlur 图像的NDK处理
+# NDK在Android应用的案例
 ### 高斯模糊
 ### 灰度图
 ### 二值化
